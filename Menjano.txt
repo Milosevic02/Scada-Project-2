@@ -1,0 +1,25 @@
+AlarmProcessor:
+    -GetAlarmForAnalogPoint:
+        ************************************
+        if (configItem.HighLimit < eguValue)
+        {
+            return AlarmType.HIGH_ALARM;
+        }
+        else if (configItem.LowLimit > eguValue)
+        {
+            return AlarmType.LOW_ALARM;
+        }
+        else if (configItem.EGU_Max < eguValue || configItem.EGU_Min > eguValue)
+        {
+            return AlarmType.REASONABILITY_FAILURE;
+        }
+        ************************************
+
+    -GetAlarmForDigitalPoint:
+        ************************************
+        if (state == configItem.AbnormalValue)
+        {
+            return AlarmType.ABNORMAL_VALUE;
+        }
+
+
