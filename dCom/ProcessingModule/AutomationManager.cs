@@ -1,5 +1,6 @@
 ﻿using Common;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace ProcessingModule
@@ -60,9 +61,80 @@ namespace ProcessingModule
 
 		private void AutomationWorker_DoWork()
 		{
-			//while (!disposedValue)
-			//{
-			//}
+			EGUConverter conv = new EGUConverter();
+			while(!disposedValue)
+			{
+				List<PointIdentifier> pointList = new List<PointIdentifier>();
+
+                //Udaljenost kapije MAX-700(Ne pise koliko je max ja stavio) na [0] mestu u listi
+                pointList.Add(new PointIdentifier(PointType.ANALOG_OUTPUT, 1000));
+
+                //Indikacija prepreke na [1] mestu u listi
+                pointList.Add(new PointIdentifier(PointType.DIGITAL_INPUT, 2000));
+
+                //Open na [2] mestu u listi
+                //Ako je ukljucen oduzimamo -10 na vrednost(Udaljenost kapije) svake sekunde Otvaramo Kapiju
+                pointList.Add(new PointIdentifier(PointType.DIGITAL_OUTPUT, 3000));
+
+                //Close na [3] mestu u listi
+                //Ako je ukljucen dodajemo +10 na vrednost(Udaljenost kapije) svake sekunde Zatvaramo Kapiju
+                pointList.Add(new PointIdentifier(PointType.DIGITAL_OUTPUT, 3001));
+
+				List<IPoint> points = storage.GetPoints(pointList);
+				ushort value = points[0].RawValue;
+
+				//Ako je ukljuceno otvaranje
+				if (points[2].RawValue == 1)
+				{
+					//Otvaraj kapiju smanjuj vrednost za 10cm svake sekunde
+					value -= conv.ConvertToRaw(points[0].ConfigItem.ScaleFactor, points[0].ConfigItem.Deviation, 10);
+
+					//Ako je kapija dosla do LowLimita = 20cm onda treba da se ugasi otvaranje
+					if(value < points[0].ConfigItem.LowLimit)
+					{
+						//Ugasimo Otvaranje,Prikazujemo na simulatoru
+						processingManager.ExecuteWriteCommand(points[2].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 3000, 0);
+					}
+					else
+					{
+						//Prikazujemo na simulatoru oduzetu vrednost
+						processingManager.ExecuteWriteCommand(points[0].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 1000, value);
+					}
+				}
+
+				if (points[3].RawValue == 1)
+				{
+					//Ako postoji prepreka
+					if (points[1].RawValue == 1)
+					{
+						//Otvori kapiju do LowAlarma
+						value -= conv.ConvertToRaw(points[0].ConfigItem.ScaleFactor, points[0].ConfigItem.Deviation, 10);
+
+					}
+					else
+					{
+						//Zatvaramo kapiju povecavamo vrednost za 10cm svake sekunde
+						value += conv.ConvertToRaw(points[0].ConfigItem.ScaleFactor, points[0].ConfigItem.Deviation, 10);
+					}
+
+					//Ako je kapija dosla do HighLimita = 600cm onda treba da se ugasi zatvaranje || Ako je kapija dosla do LowLimit = 20cm onda treba da se ugasi zatvaranje
+					if(value > points[0].ConfigItem.HighLimit || value < points[0].ConfigItem.LowLimit)
+					{
+						//Ugasimo Zatvaranje,Prikazujemo na simulatoru 
+						processingManager.ExecuteWriteCommand(points[3].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 3001, 0);
+
+					}
+					else
+					{
+						//Prikazujemo na simulatoru sabranu vrednost
+						processingManager.ExecuteWriteCommand(points[0].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 1000, value);
+					}
+				}
+				automationTrigger.WaitOne(delayBetweenCommands);
+
+
+
+            }
 		}
 
 		#region IDisposable Support
