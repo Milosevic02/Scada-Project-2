@@ -294,6 +294,75 @@ namespace dCom.Configuration
                 Int32.TryParse(configurationParameters[9], out temp);
                 AcquisitionInterval = temp;
             }
+
+			if (configurationParameters[10].Equals("#"))
+			{
+				scalingFactor = 1;
+			}
+			else
+			{
+				Double.TryParse(configurationParameters[10], out doubleTemp);
+				scalingFactor = doubleTemp;
+			}
+
+			if (configurationParameters[11].Equals("#"))
+			{
+				deviation = 0;
+			}
+			else
+			{
+                Double.TryParse(configurationParameters[11], out doubleTemp);
+                deviation = doubleTemp;
+            }
+
+            if (configurationParameters[12].Equals("#"))
+            {
+                EGU_Max = 1;
+            }
+            else
+            {
+                Double.TryParse(configurationParameters[12], out doubleTemp);
+                EGU_Max = doubleTemp;
+            }
+
+            if (configurationParameters[13].Equals("#"))
+            {
+                EGU_Min = 0;
+            }
+            else
+            {
+                Double.TryParse(configurationParameters[13], out doubleTemp);
+                EGU_Min = doubleTemp;
+            }
+
+            if (configurationParameters[14].Equals("#"))
+            {
+                abnormalValue = 0;
+            }
+            else
+            {
+                Int32.TryParse(configurationParameters[14], out temp);
+                abnormalValue = (ushort)temp;
+            }
+
+            if (configurationParameters[15].Equals("#"))
+            {
+                lowLimit = 0;
+            }
+            else
+            {
+                Double.TryParse(configurationParameters[15], out doubleTemp);
+                lowLimit = doubleTemp;
+            }
+            if (configurationParameters[16].Equals("#"))
+            {
+                highLimit = 1;
+            }
+            else
+            {
+                Double.TryParse(configurationParameters[16], out doubleTemp);
+                highLimit = doubleTemp;
+            }
         }
 
 		private PointType GetRegistryType(string registryTypeName)
